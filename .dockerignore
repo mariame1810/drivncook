@@ -1,0 +1,59 @@
+# Fichiers et dossiers à ignorer lors de la construction Docker
+
+# Fichiers de configuration locaux
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+
+# Dossiers de développement
+.git/
+.gitignore
+.vscode/
+.idea/
+
+# Fichiers temporaires
+.DS_Store
+Thumbs.db
+*.tmp
+*.temp
+
+# Documentation
+README.md
+AGENTS.md
+*.md
+
+# Fichiers de sauvegarde
+*.bak
+*.backup
+
+# Node modules (si présent)
+node_modules/
+npm-debug.log*
+
+# Caches
+.cache/
+.npm/
+.yarn/
+
+# Tests
+tests/
+__tests__/
+*.test.php
+phpunit.xml
+
+# Docker files (éviter la récursion)
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Scripts de déploiement
+deploy.sh
+monitor.sh
+
+# Certificats SSL locaux
+ssl/
+certs/

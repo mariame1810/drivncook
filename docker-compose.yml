@@ -1,0 +1,96 @@
+version: '3.8'
+
+services:
+  # Service PHP-FPM
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: drivncook_app
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+      - ./uploads:/var/www/html/uploads
+    networks:
+      - drivncook-network
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+      - DB_NAME=${DB_NAME:-drivncook}
+      - DB_USER=${DB_USER:-drivncook_user}
+      - DB_PASS=${DB_PASS:-drivncook_password}
+
+  # Service Nginx
+  webserver:
+    image: nginx:alpine
+    container_name: drivncook_webserver
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./:/var/www/html
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+      - ./docker/certbot/conf:/etc/letsencrypt
+      - ./docker/certbot/www:/var/www/certbot
+      - ./uploads:/var/www/html/uploads
+    networks:
+      - drivncook-network
+    depends_on:
+      - app
+    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+
+  # Service MySQL
+  db:
+    image: mysql:8.0
+    container_name: drivncook_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_NAME:-drivncook}
+      MYSQL_USER: ${DB_USER:-drivncook_user}
+      MYSQL_PASSWORD: ${DB_PASS:-drivncook_password}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS:-root_password}
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d
+    ports:
+      - "3306:3306"
+    networks:
+      - drivncook-network
+
+  # Service Certbot pour SSL
+  certbot:
+    image: certbot/certbot
+    container_name: drivncook_certbot
+    restart: unless-stopped
+    volumes:
+      - ./docker/certbot/conf:/etc/letsencrypt
+      - ./docker/certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+
+  # Service phpMyAdmin (optionnel pour gestion DB)
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: drivncook_phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_USER: ${DB_USER:-drivncook_user}
+      PMA_PASSWORD: ${DB_PASS:-drivncook_password}
+    ports:
+      - "8080:80"
+    networks:
+      - drivncook-network
+    depends_on:
+      - db
+
+networks:
+  drivncook-network:
+    driver: bridge
+
+volumes:
+  db_data:
+    driver: local
