@@ -1,0 +1,24 @@
+# MacOS fichiers inutiles
+.DS_Store
+
+# Dépendances Node (si tu gardes le projet Next uploader)
+node_modules/
+
+# Dépendances PHP (si jamais tu ajoutes Composer)
+vendor/
+
+# Environnements et secrets
+.env
+.env.local
+
+# Cache / logs
+*.log
+*.cache
+
+# Fichiers temporaires
+*.tmp
+*.swp
+
+# Uploads (camions, produits...)
+public/uploads/
+
